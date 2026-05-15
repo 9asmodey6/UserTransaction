@@ -1,0 +1,55 @@
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: usertransaction_rabbitmq
+    ports:
+      - "5672:5672"  
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  service-c:
+    build:
+      context: .
+      dockerfile: UserTransaction.ServiceC/Dockerfile
+    container_name: usertransaction_service_c
+    ports:
+      - "5300:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  service-b:
+    build:
+      context: .
+      dockerfile: UserTransaction.ServiceB/Dockerfile
+    container_name: usertransaction_service_b
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMq__Host=rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  service-a:
+    build:
+      context: .
+      dockerfile: UserTransaction.ServiceA/Dockerfile
+    container_name: usertransaction_service_a
+    ports:
+      - "5100:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMq__Host=rabbitmq
+      - Grpc__ServiceCAddress=http://service-c:8080
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      service-c:
+        condition: service_started
