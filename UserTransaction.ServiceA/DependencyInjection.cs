@@ -2,6 +2,7 @@ namespace UserTransaction.ServiceA;
 
 using Consumers;
 using MassTransit;
+using Saga;
 using Shared.Options;
 using UserTransaction.ServiceC.Protos;
 
@@ -15,7 +16,11 @@ public static class DependencyInjection
         services.AddMassTransit(x =>
         {
             x.AddConsumer<LogUserConsumer>();
-            
+            x.AddConsumer<CreateUserConsumer>();
+
+            x.AddSagaStateMachine<RegistrationStateMachine, RegistrationState>()
+                .InMemoryRepository();
+
             x.UsingRabbitMq((context, cfg) =>
             {
                 cfg.Host(rabbitOptions.Host, rabbitOptions.VirtualHost, h =>
