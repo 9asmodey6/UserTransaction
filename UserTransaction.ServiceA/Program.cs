@@ -19,7 +19,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-RegisterUserEndpoint.MapEndpoint(app);
+app.MapRegisterUserEndpoint();
 
 app.Run();
-

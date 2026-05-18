@@ -1,5 +1,6 @@
 namespace UserTransaction.ServiceB;
 
+using System.Collections.Concurrent;
 using Consumers;
 using FluentValidation;
 using MassTransit;
@@ -13,9 +14,13 @@ public static class DependencyInjection
         var rabbitOptions = configuration.GetSection(RabbitMqSettings.SectionName).Get<RabbitMqSettings>()
                             ?? new RabbitMqSettings();
         
+        // Register In-Memory Reservation Store
+        services.AddSingleton<ConcurrentDictionary<string, bool>>();
+
         services.AddMassTransit(x =>
         {
             x.AddConsumer<ValidateUserConsumer>();
+            x.AddConsumer<ReleaseUsernameConsumer>();
             
             x.UsingRabbitMq((context, cfg) =>
             {

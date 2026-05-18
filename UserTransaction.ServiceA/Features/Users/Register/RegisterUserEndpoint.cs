@@ -1,61 +1,47 @@
 namespace UserTransaction.ServiceA.Features.Users.Register;
 
 using MassTransit;
-using Microsoft.AspNetCore.Http.HttpResults;
-using ServiceC.Protos;
-using Shared.Contracts;
+using Shared.Contracts.Commands;
+using Shared.Contracts.Events;
 using Shared.Models;
 
-public class RegisterUserEndpoint
+public static class RegisterUserEndpoint
 {
-    public static void MapEndpoint(IEndpointRouteBuilder app)
+    public static void MapRegisterUserEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapPost("/api/users", HandleAsync)
-            .WithName("Register User")
-            .WithSummary("Register new user");
+            .WithName("RegisterUser")
+            .Produces<Result<Guid>>(StatusCodes.Status201Created)
+            .Produces<Result>(StatusCodes.Status400BadRequest)
+            .Produces<Result>(StatusCodes.Status500InternalServerError);
     }
 
     private static async Task<IResult> HandleAsync(
         RegisterUserRequest request,
-        IRequestClient<ValidateUserCommand> validateClient,
-        IRequestClient<LogUserCommand> logClient,
-        UserService.UserServiceClient client)
+        IRequestClient<StartRegistrationCommand> client)
     {
         var correlationId = Guid.NewGuid();
 
-        var validateTask = validateClient.GetResponse<Result>(
-            new ValidateUserCommand(correlationId, request.Email, request.Username));
-            
-        var logTask = logClient.GetResponse<Result>(
-            new LogUserCommand(correlationId, request.Email));
-            
-        await Task.WhenAll(validateTask, logTask);
+        // Starting transaction
+        var response = await client.GetResponse<UserCreatedEvent, RegistrationFailedEvent>(
+            new StartRegistrationCommand
+            {
+                CorrelationId = correlationId,
+                Email = request.Email,
+                Username = request.Username
+            });
 
-        var validationResult = validateTask.Result.Message;
-        var logResult = logTask.Result.Message;
-        
-        if (validationResult.IsFailure)
+        if (response.Is<UserCreatedEvent>(out var success))
         {
-            return Results.BadRequest(Result.Failure(validationResult.Errors));
+            return Results.Created($"/api/users/{success.Message.UserId}",
+                Result<Guid>.Success(success.Message.UserId));
         }
 
-        if (logResult.IsFailure)
+        if (response.Is<RegistrationFailedEvent>(out var fail))
         {
-            return Results.Problem("Logging failed");
+            return Results.BadRequest(Result.Failure(fail.Message.Errors));
         }
-        
-        var grpcReply = await client.CreateUserAsync(new CreateUserRequest
-        {
-            Email = request.Email,
-            Username = request.Username
-        });
-        
-        if (!grpcReply.Success)
-        {
-            return Results.Problem(grpcReply.Error);
-        }
-        
-        var userId = Guid.Parse(grpcReply.UserId);
-        return Results.Created($"/users/{userId}", Result<Guid>.Success(userId));
+
+        return Results.Problem("Unknown error occurred during registration.");
     }
 }

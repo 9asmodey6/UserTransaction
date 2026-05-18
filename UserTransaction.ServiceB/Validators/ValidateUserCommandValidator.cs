@@ -2,6 +2,7 @@
 
 using FluentValidation;
 using Shared.Contracts;
+using Shared.Contracts.Commands;
 
 public class ValidateUserCommandValidator : AbstractValidator<ValidateUserCommand>
 {
