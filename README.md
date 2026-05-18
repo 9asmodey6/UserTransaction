@@ -22,12 +22,17 @@ When a user attempts to register, the system must validate the username, log the
 
 ## How to Run
 
-1. Open a terminal in the root directory of the project.
-2. Run the following command to build and start the microservices along with RabbitMQ:
+1. Clone the repository to your local machine:
+   ```bash
+   git clone https://github.com/9asmodey6/UserTransaction.git
+   cd UserTransaction
+   ```
+2. Open a terminal in the root directory of the project.
+3. Run the following command to build and start the microservices along with RabbitMQ:
    ```bash
    docker compose up --build
    ```
-3. Once the containers are running, navigate to `http://localhost:5100/swagger/` in your browser to manually invoke the endpoint and start the distributed transaction.
+4. Once the containers are running, navigate to `http://localhost:5100/swagger/` in your browser to manually invoke the endpoint and start the distributed transaction.
 
 ---
 *Note: This project was developed as part of a technical assignment for a Backend Developer role.*
