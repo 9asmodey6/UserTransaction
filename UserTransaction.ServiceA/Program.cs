@@ -7,6 +7,7 @@ builder.Services
     .ApplyConfigurations(builder.Configuration)
     .RegisterMassTransit(builder.Configuration)
     .RegisterGrpcClients(builder.Configuration)
+    .RegisterGlobalExceptionHandler()
     .AddEndpointsApiExplorer()
     .AddSwaggerGen(); 
 
@@ -19,7 +20,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseExceptionHandler();
+
 app.MapRegisterUserEndpoint();
 
 app.Run();
-

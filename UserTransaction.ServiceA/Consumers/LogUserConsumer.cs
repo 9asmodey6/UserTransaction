@@ -2,7 +2,7 @@
 
 using MassTransit;
 using Shared.Contracts.Commands;
-using Shared.Models;
+using Shared.Contracts.Events;
 
 public class LogUserConsumer(ILogger<LogUserConsumer> logger) : IConsumer<LogUserCommand>
 {
@@ -13,11 +13,11 @@ public class LogUserConsumer(ILogger<LogUserConsumer> logger) : IConsumer<LogUse
             logger.LogInformation("[{CorrelationId}] Registration started for {Email}",
                 context.Message.CorrelationId, context.Message.Email);
 
-            await context.RespondAsync(Result.Success());
+            await context.Publish(new UserLoggedEvent { CorrelationId = context.Message.CorrelationId });
         }
         catch (Exception ex)
         {
-            await context.RespondAsync(Result.Failure(ex.ToString())); 
+            await context.Publish(new LoggingFailedEvent { CorrelationId = context.Message.CorrelationId, Error = ex.ToString() });
         }
     }
 }

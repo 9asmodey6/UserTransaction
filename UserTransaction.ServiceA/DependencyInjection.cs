@@ -1,10 +1,11 @@
 namespace UserTransaction.ServiceA;
 
 using Consumers;
+using Infrastructure.Exceptions;
 using MassTransit;
 using Saga;
 using Shared.Options;
-using UserTransaction.ServiceC.Protos;
+using ServiceC.Protos;
 
 public static class DependencyInjection
 {
@@ -56,6 +57,13 @@ public static class DependencyInjection
         services.Configure<GrpcSettings>(
             configuration.GetSection(GrpcSettings.SectionName));
 
+        return services;
+    }
+
+    public static IServiceCollection RegisterGlobalExceptionHandler(this IServiceCollection services)
+    {
+        services.AddExceptionHandler<GlobalExceptionHandler>();
+        services.AddProblemDetails();
         return services;
     }
 }
