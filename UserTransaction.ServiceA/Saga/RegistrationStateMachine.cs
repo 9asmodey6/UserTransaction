@@ -101,7 +101,7 @@ public class RegistrationStateMachine : MassTransitStateMachine<RegistrationStat
 
             When(LoggingFailed)
                 .If(ctx => ctx.Saga.IsValidated,
-                    binder => binder.Publish(ctx => new ReleaseUsernameCommand
+                    binder => binder.Publish(ctx => new ReleaseUsernameCommand // Compensating Transaction
                     {
                         CorrelationId = ctx.Saga.CorrelationId,
                         Username = ctx.Saga.Username
@@ -127,7 +127,7 @@ public class RegistrationStateMachine : MassTransitStateMachine<RegistrationStat
                 .Finalize(),
 
             When(PersistenceFailed)
-                .Publish(ctx => new ReleaseUsernameCommand
+                .Publish(ctx => new ReleaseUsernameCommand // Compensating Transaction
                 {
                     CorrelationId = ctx.Saga.CorrelationId,
                     Username = ctx.Saga.Username
