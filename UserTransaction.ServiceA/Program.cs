@@ -22,3 +22,4 @@ if (app.Environment.IsDevelopment())
 app.MapRegisterUserEndpoint();
 
 app.Run();
+
