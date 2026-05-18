@@ -9,11 +9,9 @@ public class RegistrationState : SagaStateMachineInstance
     
     public Uri? ResponseAddress { get; set; }
     public Guid? RequestId { get; set; }
-
-
+    
     public string Email { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
-    
 
     public bool IsValidated { get; set; }
     public bool IsLogged { get; set; }
