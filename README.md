@@ -25,7 +25,7 @@ When a user attempts to register, the system must validate the username, log the
 1. Open a terminal in the root directory of the project.
 2. Run the following command to build and start the microservices along with RabbitMQ:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 3. Once the containers are running, navigate to `http://localhost:5100/swagger/` in your browser to manually invoke the endpoint and start the distributed transaction.
 
